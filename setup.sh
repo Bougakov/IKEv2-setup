@@ -1,17 +1,18 @@
 #!/bin/bash -e
 
+# based on brilliant work by https://github.com/jawj/IKEv2-setup
+
 # == Update to 17.10 if required:
 # nano /etc/update-manager/release-upgrades -> Prompt=normal
-# apt-get update
-# do-release-upgrade
+# apt-get update && do-release-upgrade
 
 # == Then run this script
-# wget https://raw.githubusercontent.com/jawj/IKEv2-setup/master/setup.sh
+# wget https://raw.githubusercontent.com/Bougakov/IKEv2-setup/master/setup.sh
 # chmod u+x setup.sh
 # ./setup.sh
 
 echo
-echo "=== https://github.com/jawj/IKEv2-setup ==="
+echo "=== https://github.com/Bougakov/IKEv2-setup/ ==="
 echo
 
 function exit_badly {
@@ -19,23 +20,28 @@ function exit_badly {
   exit 1
 }
 
-[[ $(lsb_release -rs) == "17.10" ]] || exit_badly "This script is for Ubuntu 17.10 only, aborting (if you know what you are doing, delete this check)."
-[[ $(id -u) -eq 0 ]] || exit_badly "Please re-run as root (e.g. sudo ./path/to/this/script)"
+[[ $(lsb_release -rs) == "17.10" ]] || exit_badly "This script is for Ubuntu 17.10 only, aborting. Edit /etc/update-manager/release-upgrades to change Prompt to normal, then run apt-get update && do-release-upgrade."
+[[ $(id -u) -eq 0 ]] || exit_badly "You need to run this program as root user"
 
 echo "--- Configuration: VPN settings ---"
 echo
 
 echo "** Note: hostname must resolve to this machine already, to enable Let's Encrypt certificate setup **"
-read -p "Hostname for VPN (e.g. vpn.example.com): " VPNHOST
+echo "** If you do not have a hostname, but only have an IP address, such as 1.2.3.4, use address       **"
+echo "** provided by xip.io wildcard DNS service, e.g.: 1.2.3.4.xip.io                                  **"
+echo "** If you will be using latter, it is a good idea to try accessing 1.2.3.4.xip.io first using     **"
+echo "** your browser (it will fail obviously, but will force xip.io to add required record to DNS).    **"
+
+read -p "Hostname for VPN (e.g. vpn.example.com or 1.2.3.4.xip.io): " VPNHOST
 
 VPNHOSTIP=$(dig -4 +short "$VPNHOST")
 [[ -n "$VPNHOSTIP" ]] || exit_badly "Cannot resolve VPN hostname, aborting"
 
-read -p "VPN username: " VPNUSERNAME
+read -p "Choose login name to be used to connect to VPN from your devices (e.g. vpn) - no quotes, please: " VPNUSERNAME
 while true; do
-read -s -p "VPN password (no quotes, please): " VPNPASSWORD
+read -s -p "Set up a password for this new VPN user (no quotes, please): " VPNPASSWORD
 echo
-read -s -p "Confirm VPN password: " VPNPASSWORD2
+read -s -p "Retype password once again: " VPNPASSWORD2
 echo
 [ "$VPNPASSWORD" = "$VPNPASSWORD2" ] && break
 echo "Passwords didn't match -- please try again"
@@ -45,17 +51,17 @@ echo
 echo "--- Configuration: general server settings ---"
 echo
 
-read -p "Timezone (default: Europe/London): " TZONE
-TZONE=${TZONE:-'Europe/London'}
+read -p "Timezone (default: Europe/Moscow): " TZONE
+TZONE=${TZONE:-'Europe/Moscow'}
 
-read -p "Email address for sysadmin (e.g. j.bloggs@example.com): " EMAIL
+read -p "Email address for sysadmin (e.g. me@example.com): " EMAIL
 
 echo
 
 read -p "SSH log-in port (default: 22): " SSHPORT
 SSHPORT=${SSHPORT:-22}
 
-read -p "SSH log-in username: " LOGINUSERNAME
+read -p "Choose Linux login name to be used to access this server over SSH: " LOGINUSERNAME
 while true; do
   read -s -p "SSH log-in password (must be REALLY STRONG): " LOGINPASSWORD
   echo
@@ -65,9 +71,7 @@ while true; do
   echo "Passwords didn't match -- please try again"
 done
 
-
 VPNIPPOOL="10.10.10.0/24"
-
 
 echo
 echo "--- Updating and installing software ---"
@@ -179,8 +183,8 @@ ln -f -s /etc/letsencrypt/live/$VPNHOST/cert.pem    /etc/ipsec.d/certs/cert.pem
 ln -f -s /etc/letsencrypt/live/$VPNHOST/privkey.pem /etc/ipsec.d/private/privkey.pem
 ln -f -s /etc/letsencrypt/live/$VPNHOST/chain.pem   /etc/ipsec.d/cacerts/chain.pem
 
-grep -Fq 'jawj/IKEv2-setup' /etc/apparmor.d/local/usr.lib.ipsec.charon || echo "
-# https://github.com/jawj/IKEv2-setup
+grep -Fq 'Bougakov/IKEv2-setup' /etc/apparmor.d/local/usr.lib.ipsec.charon || echo "
+# https://github.com/Bougakov/IKEv2-setup/
 /etc/letsencrypt/archive/${VPNHOST}/* r,
 " >> /etc/apparmor.d/local/usr.lib.ipsec.charon
 
@@ -195,8 +199,8 @@ echo
 # ip_no_pmtu_disc is for UDP fragmentation
 # others are for security
 
-grep -Fq 'jawj/IKEv2-setup' /etc/sysctl.conf || echo '
-# https://github.com/jawj/IKEv2-setup
+grep -Fq 'Bougakov/IKEv2-setup' /etc/sysctl.conf || echo '
+# https://github.com/Bougakov/IKEv2-setup/
 net.ipv4.ip_forward = 1
 net.ipv4.ip_no_pmtu_disc = 1
 net.ipv4.conf.all.rp_filter = 1
@@ -269,8 +273,8 @@ sed -r \
 -e 's/^#?UsePAM yes$/UsePAM no/' \
 -i.original /etc/ssh/sshd_config
 
-grep -Fq 'jawj/IKEv2-setup' /etc/ssh/sshd_config || echo "
-# https://github.com/jawj/IKEv2-setup
+grep -Fq 'Bougakov/IKEv2-setup' /etc/ssh/sshd_config || echo "
+# https://github.com/Bougakov/IKEv2-setup/
 MaxStartups 1
 MaxAuthTries 2
 UseDNS no" >> /etc/ssh/sshd_config
@@ -291,8 +295,8 @@ sed -r \
 -e 's/^inet_interfaces =.*$/inet_interfaces = loopback-only/' \
 -i.original /etc/postfix/main.cf
 
-grep -Fq 'jawj/IKEv2-setup' /etc/aliases || echo "
-# https://github.com/jawj/IKEv2-setup
+grep -Fq 'Bougakov/IKEv2-setup' /etc/aliases || echo "
+# https://github.com/Bougakov/IKEv2-setup/
 root: ${EMAIL}
 ${LOGINUSERNAME}: ${EMAIL}
 " >> /etc/aliases
@@ -452,8 +456,8 @@ apt-get install -y libcharon-standard-plugins || true  # 17.04+ only
 
 ln -f -s /etc/ssl/certs/DST_Root_CA_X3.pem /etc/ipsec.d/cacerts/
 
-grep -Fq 'jawj/IKEv2-setup' /etc/ipsec.conf || echo "
-# https://github.com/jawj/IKEv2-setup
+grep -Fq 'Bougakov/IKEv2-setup' /etc/ipsec.conf || echo "
+# https://github.com/Bougakov/IKEv2-setup
 conn ikev2vpn
         ikelifetime=60m
         keylife=20m
@@ -472,8 +476,8 @@ conn ikev2vpn
         auto=add  # or auto=start to bring up automatically
 " >> /etc/ipsec.conf
 
-grep -Fq 'jawj/IKEv2-setup' /etc/ipsec.secrets || echo "
-# https://github.com/jawj/IKEv2-setup
+grep -Fq 'Bougakov/IKEv2-setup' /etc/ipsec.secrets || echo "
+# https://github.com/Bougakov/IKEv2-setup/
 \${VPNUSERNAME} %any : EAP \"\${VPNPASSWORD}\"
 " >> /etc/ipsec.secrets
 
