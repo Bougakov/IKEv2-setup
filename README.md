@@ -1,20 +1,14 @@
-# IKEv2-setup
+Work in progress!
 
-## Table of Contents
+# Установка и настройка VPN для себя и для технически неграмотных друзей
 
-  * [What?](#what-)
-    + [VPN server](#vpn-server)
-    + [VPN clients](#vpn-clients)
-    + [Caveats](#caveats)
-  * [How?](#how-)
-    + [Troubleshooting](#troubleshooting)
-    + [Users](#users)
-    + [Upgrades](#upgrades)
-    + [Bonus paranoia](#bonus-paranoia)
-  * [Why?](#why-)
-    + [Why IKEv2?](#why-ikev2-)
+## О чём тут речь?
 
-## What?
+Здась вы найдёте скрипт на Bash, который позволит вам развернуть на "голом" арендованном сервере Ubuntu 17.10 защищённый VPN-сервер.
+
+Также вас тут научат сделать приложение в Facebook, с помощью которого вы сможете автоматически раздавать пароли от вашего новенького VPN своим технически неграмотным друзьям.
+
+<!--
 
 A Bash script that takes Ubuntu Server 17.10 (and probably also 17.04 or 16.10, but these are no longer tested) from clean install to production-ready IKEv2 VPN with strongSwan. Comments and pull requests welcome.
 
@@ -105,3 +99,5 @@ We use a similar setup as a corporate VPN at [PSYT](http://psyt.co.uk). And I us
 * Robust to connection switching and interruptions via MOBIKE
 
 More on IKEv2 at https://www.cl.cam.ac.uk/~mas90/resources/strongswan/ and https://www.bestvpn.com/blog/4147/pptp-vs-l2tp-vs-openvpn-vs-sstp-vs-ikev2/
+
+-->
